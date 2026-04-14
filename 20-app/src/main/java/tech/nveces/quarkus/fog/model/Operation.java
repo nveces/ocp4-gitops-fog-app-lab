@@ -11,19 +11,21 @@ import java.util.List;
 public class Operation extends PanacheEntityBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     public Long id;
 
     @Column(nullable = false, length = 100)
     public String product;
 
-    @Column(name = "monto_eur", nullable = false, precision = 15, scale = 2)
+    @Column(name = "amount_eur", nullable = false, precision = 15, scale = 2)
     public BigDecimal amountEur;
 
-    @Column(name = "usuario_id", length = 50)
+    @Column(name = "user_id", length = 50)
     public String userId;
 
     @Column(name = "date_creation", updatable = false)
     public LocalDateTime dateCreation = LocalDateTime.now();
+    @Column(name = "date_update")
     public LocalDateTime dateUpdate = LocalDateTime.now();
 
     // filter by product

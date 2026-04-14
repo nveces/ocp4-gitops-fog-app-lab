@@ -1,0 +1,94 @@
+kind: AnalysisTemplate
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: analysis-v1
+  namespace: app-lab
+spec:
+  args:
+    - name: LIQUIBASE_COMMAND_USERNAME
+    - name: LIQUIBASE_COMMAND_PASSWORD
+    - name: LIQUIBASE_COMMAND_URL
+    - name: LIQUIBASE_CHANGELOG_FILE
+    #
+  metrics:
+  - name: pass-apply-changelog
+    count: 1
+    interval: 5s
+    failureLimit: 1
+    provider:
+      job:
+        spec:
+          template:
+            spec:
+              #serviceAccountName:
+              restartPolicy: Never
+              terminationGracePeriodSeconds: 10
+              dnsPolicy: ClusterFirst
+              containers:
+              - name: fog-liquibase-job-v1
+                env:
+                  - name: NAMESPACE
+                    valueFrom:
+                      fieldRef:
+                        fieldPath: metadata.namespace
+                  - name: JOBNAME
+                    valueFrom:
+                      fieldRef:
+                        apiVersion: v1
+                        fieldPath: metadata.name
+                  - name: HOST_IP
+                    valueFrom:
+                      fieldRef:
+                        apiVersion: v1
+                        fieldPath: status.hostIP
+                image: image-registry.openshift-image-registry.svc:5000/app-lab/fog-liquibase:v1
+                terminationMessagePath: /dev/termination-log
+                terminationMessagePolicy: File
+                imagePullPolicy: Always
+                resources:
+                  requests:
+                    cpu: 300m
+                    memory: 250Mi
+                command:
+                  - /bin/bash
+                  - '-c'
+                  - |
+                    #set -euo pipefail
+                    #set -uo pipefail
+                    date "+%F_%H-%M-%S"
+                    echo "001- NAMESPACE -: ${NAMESPACE}. JobName: ${JOBNAME}. HostIP: ${HOST_IP}"
+                    echo "Username --: {{ arg.LIQUIBASE_COMMAND_USERNAME }}. "
+                    echo "Password --: {{ arg.LIQUIBASE_COMMAND_PASSWORD }}. "
+                    echo "URL -------: {{ arg.LIQUIBASE_COMMAND_URL }}. "
+                    /liquibase/liquibase --changelog-file={{ arg.LIQUIBASE_CHANGELOG_FILE }} --log-level=INFO \
+                    --search-path=/liquibase/changelog \
+                    --driver=org.postgresql.Driver  \
+                    --default-schema-name=public    \
+                    --url={{ arg.LIQUIBASE_COMMAND_URL }}  \
+                    --username={{ arg.LIQUIBASE_COMMAND_USERNAME }} \
+                    --password={{ arg.LIQUIBASE_COMMAND_PASSWORD }} update
+                    exitcodeliquibase=$?
+                    if [ $exitcodeliquibase -ne 0 ]; then
+                      echo "##################################################"
+                      echo "ERROR: Liquibase execution failed (Code: $exitcodeliquibase)"
+                      echo "Starting Rollback of the last changes..."
+                      date "+%F_%H-%M-%S"
+                      # try to rollback the last changeset that might have caused the issue
+                      /liquibase/liquibase --changelog-file={{ arg.LIQUIBASE_CHANGELOG_FILE }} \
+                      --search-path=/liquibase/changelog \
+                      --url={{ arg.LIQUIBASE_COMMAND_URL }} \
+                      --username={{ arg.LIQUIBASE_COMMAND_USERNAME }} \
+                      --password={{ arg.LIQUIBASE_COMMAND_PASSWORD }} \
+                      rollbackCount 1 --log-level=INFO
+                      echo "Rollback completed. Terminating Job with error."
+                      echo "##################################################"
+                      exit $exitcodeliquibase
+                    fi
+                    echo "end of liquibase execution."
+                    date "+%F_%H-%M-%S"
+                    exit 0
+                    # END JOB
+              securityContext: {}
+                # runAsUser: 1001
+                # fsGroup: 1001
+# EOF

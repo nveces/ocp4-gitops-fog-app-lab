@@ -1,0 +1,37 @@
+# SERVICE ACTIVE: it's the one used by the external Route
+apiVersion: v1
+kind: Service
+metadata:
+  name: fog-stable-svc
+  namespace: app-lab
+  labels:
+    app: fog-app
+    mode: stable
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+    protocol: TCP
+  selector:
+    app: fog-app
+---
+# SERVICE PREVIEW: For internal tests before the switch
+apiVersion: v1
+kind: Service
+metadata:
+  name: fog-canary-svc
+  namespace: app-lab
+  labels:
+    app: fog-app
+    mode: canary
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: fog-app
+
+# EOF

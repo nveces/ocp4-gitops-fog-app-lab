@@ -6,7 +6,7 @@
   <changeSet author="nveces@gmail.com" id="v1">
     <comment>Initial schema creation for Operation entity</comment>
     <createTable tableName="OPERATION">
-      <column name="ID" type="BIGINT">
+      <column name="ID" type="BIGINT" autoIncrement="true">
         <constraints primaryKey="true" nullable="false" />
       </column>
       <column name="PRODUCT" type="VARCHAR(100)">

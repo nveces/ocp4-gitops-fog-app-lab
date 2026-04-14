@@ -1,0 +1,36 @@
+# SERVICIO ACTIVO: Es el que usa la Route externa
+apiVersion: v1
+kind: Service
+metadata:
+  name: fog-active-svc
+  namespace: app-lab
+  labels:
+    app: fog-app
+    mode: active
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: fog-app
+
+---
+# SERVICIO PREVIEW: Para tests internos antes del switch
+apiVersion: v1
+kind: Service
+metadata:
+  name: fog-preview-svc
+  namespace: app-lab
+  labels:
+    app: fog-app
+    mode: preview
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: fog-app

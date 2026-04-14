@@ -1,0 +1,16 @@
+ apiVersion: image.openshift.io/v1
+ kind: ImageStream
+ metadata:
+  labels:
+    app: fog-app
+  name: fog-app
+  namespace: app-lab
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  labels:
+    app: fog-liquibase
+  name: fog-liquibase
+  namespace: app-lab
+# EOF

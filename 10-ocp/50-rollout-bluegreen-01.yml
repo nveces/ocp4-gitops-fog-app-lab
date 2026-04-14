@@ -1,0 +1,89 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: fog-app
+  namespace: app-lab
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: fog-app
+  template:
+    metadata:
+      labels:
+        app: fog-app
+        version: v1
+    spec:
+      containers:
+      - env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: fog-db-credentials
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: fog-db-credentials
+              key: password
+        - name: DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: fog-db-credentials
+              key: jdbc-uri
+        name: quarkus-app
+        #image: quay.io/nveces/fog-app:v1
+        imagePullPolicy: Always
+        image: image-registry.openshift-image-registry.svc:5000/app-lab/fog-app:v1
+        ports:
+          - containerPort: 8080
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+#
+  strategy:
+    blueGreen:
+      # Service that always points to the stable version (V1)
+      activeService: fog-active-svc
+      # Service to point to the new version (V2) for validation
+      previewService: fog-preview-svc
+      # For V1, promotion is automatic since it's the initial deployment
+      autoPromotionEnabled: true
+      #
+      prePromotionAnalysis:
+        args:
+          - name: LIQUIBASE_COMMAND_USERNAME
+            value: spuser
+          - name: LIQUIBASE_COMMAND_PASSWORD
+            value: 7wQlFSxsz5NIuoWCpkCrwVEP
+          - name: LIQUIBASE_COMMAND_URL
+            value: 'jdbc:postgresql://pgsql-primary.dbaas-lab.svc:5432/sso'
+          - name: LIQUIBASE_CHANGELOG_FILE
+            value: jpa-changelog-master-v1.xml
+#
+          # - name: LIQUIBASE_COMMAND_USERNAME
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: fog-db-credentials
+          #       key: username
+          # - name: LIQUIBASE_COMMAND_PASSWORD
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: fog-db-credentials
+          #       key: password
+          # - name: LIQUIBASE_COMMAND_URL
+          #   valueFrom:
+          #     secretKeyRef:
+          #       name: fog-db-credentials
+          #       key: jdbc-uri
+          #- name: route-url
+          #  value: preview-%USER%-prod.%SUB_DOMAIN%
+        templates:
+          - templateName: analysis-v1
+      abortScaleDownDelaySeconds: 30
+      scaleDownDelaySeconds: 15

@@ -1,0 +1,39 @@
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: fog-app
+  name: fog-app
+  namespace: app-lab
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fog-app:v1
+      namespace: app-lab
+  postCommit: {}
+  resources:
+    limits:
+      cpu: '2'
+      memory: 4Gi
+  strategy:
+    type: Source
+    sourceStrategy:
+      imageOptimizationPolicy: SkipLayers
+      from:
+        kind: DockerImage
+        #name: 'ubi8/ubi-java-17:latest'
+        #name: 'ubi8/ubi-java-17:latest'
+        #name: mandrel-jdk21-s2i:23.1
+        name: 'registry.access.redhat.com/ubi9/openjdk-21:1.24'
+        #name: quay.io/quarkus/ubi-quarkus-native-s2i:21.3.2-java11
+        #namespace: app-lab
+  source:
+    type: Git
+    git:
+      uri: "https://route-gitlab-system.apps.cluster-5h9kv.dynamic.redhatworkshops.io/nveces/ocp4-gitops-fog-app-lab.git"
+      ref: main
+    contextDir: 20-app
+  runPolicy: Serial
+---

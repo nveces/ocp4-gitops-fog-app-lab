@@ -1,0 +1,16 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: fog-route
+  namespace: app-lab
+  labels:
+    app: fog-app
+spec:
+  #
+  to:
+    kind: Service
+    name: fog-active-svc # Never changes, Argo moves the pods under the service
+  port:
+    targetPort: http
+  tls:
+    termination: edge

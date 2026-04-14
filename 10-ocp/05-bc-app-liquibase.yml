@@ -1,0 +1,31 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: fog-liquibase
+  name: fog-liquibase
+  namespace: app-lab
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fog-liquibase:v1
+      namespace: app-lab
+  postCommit: {}
+  resources:
+    limits:
+      cpu: '2'
+      memory: 4Gi
+  strategy:
+    type: Docker
+    dockerStrategy:
+      imageOptimizationPolicy: SkipLayers
+      dockerfilePath: Dockerfile.migration
+  source:
+    type: Git
+    git:
+      #uri: "https://github.com/nveces/ocp4-gitops-fog-app-lab.git"
+      uri: "https://route-gitlab-system.apps.cluster-5h9kv.dynamic.redhatworkshops.io/nveces/ocp4-gitops-fog-app-lab.git"
+      ref: main
+    contextDir: 30-db
+  runPolicy: Serial
