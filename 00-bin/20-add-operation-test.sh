@@ -16,8 +16,8 @@ do
     USER_ID="User_$(shuf -i 1-100 -n 1)"
     AMOUNT=$(echo "scale=2; $RANDOM/100" | bc)
     PRODUCT="Product_$(shuf -e A B C D -n 1)"
-    CURRENCY="$(shuf -e EUR USD YEN -n 1)"
-    echo "Enviando: $PRODUCT | $AMOUNT EUR | $USER_ID | $CURRENCY"
+    #CURRENCY="$(shuf -e EUR USD YEN -n 1)"
+    echo "Enviando: $PRODUCT | $AMOUNT EUR | $USER_ID"
 
     # Llamada a la API
     curl  -s -o /dev/null -X POST -H "Content-Type: application/json" \
