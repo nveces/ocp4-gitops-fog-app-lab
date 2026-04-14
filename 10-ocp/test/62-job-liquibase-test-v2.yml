@@ -1,0 +1,111 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-fog-liquibase-check-v2
+  namespace: app-lab
+  #namespace: dbaas-lab
+spec:
+  parallelism: 1
+  completions: 1
+  activeDeadlineSeconds: 1800
+  backoffLimit: 1
+  #backoffLimitPerIndex: 1
+  template:
+    metadata:
+      name: job-fog-liquibase-check-v2
+      labels:
+        app: fog-liquibase-job
+    spec:
+      #serviceAccountName:
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 10
+      dnsPolicy: ClusterFirst
+      containers:
+        - name: job-fog-liquibase-check-v2
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JOBNAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: HOST_IP
+              valueFrom:
+               fieldRef:
+                 apiVersion: v1
+                 fieldPath: status.hostIP
+            - name: LIQUIBASE_CHANGELOG_FILE
+              #value: jpa-changelog-master.xml
+              #value: jpa-changelog-master-v1.xml
+              value: jpa-changelog-master-v2.xml
+              # value: jpa-changelog-master-v2-post.xml
+              # value: jpa-changelog-master-v3.xml
+            - name: LIQUIBASE_COMMAND_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: fog-db-credentials
+                  key: username
+            - name: LIQUIBASE_COMMAND_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: fog-db-credentials
+                  key: password
+            - name: LIQUIBASE_COMMAND_URL
+              valueFrom:
+                secretKeyRef:
+                  name: fog-db-credentials
+                  key: jdbc-uri
+          image: image-registry.openshift-image-registry.svc:5000/app-lab/fog-liquibase:v1
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 300m
+              memory: 250Mi
+          command:
+            - /bin/bash
+            - '-c'
+            - |
+              #set -euo pipefail
+              #set -uo pipefail
+              date "+%F_%H-%M-%S"
+              echo "NAMESPACE -: ${NAMESPACE}. JobName: ${JOBNAME}. HostIP: ${HOST_IP}"
+              echo "Username --: ${LIQUIBASE_COMMAND_USERNAME}. "
+              echo "Password --: ${LIQUIBASE_COMMAND_PASSWORD}. "
+              echo "URL -------: ${LIQUIBASE_COMMAND_URL}. "
+              #/liquibase/liquibase --changelog-file=/liquibase/changelog/jpa-changelog-master.xml --log-level=FINE \
+              /liquibase/liquibase --changelog-file=${LIQUIBASE_CHANGELOG_FILE} --log-level=INFO \
+              --search-path=/liquibase/changelog \
+              --driver=org.postgresql.Driver  \
+              --default-schema-name=public    \
+              --url=${LIQUIBASE_COMMAND_URL}  \
+              --username=${LIQUIBASE_COMMAND_USERNAME} \
+              --password=${LIQUIBASE_COMMAND_PASSWORD} update
+              exitcodeliquibase=$?
+              if [ $exitcodeliquibase -ne 0 ]; then
+                echo "##################################################"
+                echo "ERROR: Liquibase execution failed (Code: $exitcodeliquibase)"
+                echo "Starting Rollback of the last changes..."
+                date "+%F_%H-%M-%S"
+                # try to rollback the last changeset that might have caused the issue
+                /liquibase/liquibase --changelog-file=${LIQUIBASE_CHANGELOG_FILE} \
+                --search-path=/liquibase/changelog \
+                --url=${LIQUIBASE_COMMAND_URL} \
+                --username=${LIQUIBASE_COMMAND_USERNAME} \
+                --password=${LIQUIBASE_COMMAND_PASSWORD} \
+                rollbackCount 1 --log-level=INFO
+                echo "Rollback completed. Terminating Job with error."
+                echo "##################################################"
+                exit $exitcodeliquibase
+              fi
+              echo "end of liquibase execution."
+              date "+%F_%H-%M-%S"
+              exit 0
+              # END JOB
+      securityContext: {}
+        # runAsUser: 1001
+        # fsGroup: 1001

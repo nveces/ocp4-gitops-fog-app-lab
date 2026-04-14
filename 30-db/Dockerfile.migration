@@ -1,0 +1,4 @@
+#
+FROM docker.io/liquibase/liquibase:4.33
+COPY changelog /liquibase/changelog
+#

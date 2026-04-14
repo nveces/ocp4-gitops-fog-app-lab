@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.2.xsd">
+  <changeSet author="nveces@gmail.com" id="v1">
+    <comment>Initial schema creation for Operation entity</comment>
+    <createTable tableName="OPERATION">
+      <column name="ID" type="BIGINT">
+        <constraints primaryKey="true" nullable="false" />
+      </column>
+      <column name="PRODUCT" type="VARCHAR(100)">
+        <constraints nullable="false" />
+      </column>
+      <column name="AMOUNT_EUR" type="DECIMAL(15, 2)">
+        <constraints nullable="false" />
+      </column>
+      <column name="USER_ID" type="VARCHAR(50)" />
+      <column name="DATE_CREATION" type="TIMESTAMP">
+        <constraints nullable="false" />
+      </column>
+      <column name="DATE_UPDATE" type="TIMESTAMP">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+  </changeSet>
+  <changeSet id="set-default-date-creation" author="nveces@gmail.com">
+    <addDefaultValue tableName="operation"
+      columnName="date_creation"
+      defaultValueComputed="CURRENT_TIMESTAMP" />
+    <addDefaultValue tableName="operation"
+      columnName="date_update"
+      defaultValueComputed="CURRENT_TIMESTAMP" />
+  </changeSet>
+</databaseChangeLog>
