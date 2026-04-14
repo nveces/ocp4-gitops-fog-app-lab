@@ -24,7 +24,8 @@ do
          -d "{
                \"product\": \"$PRODUCT\",
                \"amountEur\": $AMOUNT,
-               \"userId\": \"$USER_ID\"
+               \"userId\": \"$USER_ID\",
+	           \"currencyId\": \"$CURRENCY\"
              }" \
          "${API_URL}"
     #

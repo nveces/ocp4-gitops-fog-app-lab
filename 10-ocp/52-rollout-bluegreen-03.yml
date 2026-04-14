@@ -13,7 +13,7 @@ spec:
     metadata:
       labels:
         app: fog-app
-        version: v1
+        version: v3
     spec:
       containers:
       - env:
@@ -37,7 +37,7 @@ spec:
         name: quarkus-app
         #image: quay.io/nveces/fog-app:v1
         imagePullPolicy: Always
-        image: image-registry.openshift-image-registry.svc:5000/app-lab/fog-app:v1
+        image: image-registry.openshift-image-registry.svc:5000/app-lab/fog-app:v3
         ports:
           - containerPort: 8080
         resources:
@@ -60,8 +60,9 @@ spec:
       prePromotionAnalysis:
         args:
           - name: LIQUIBASE_CHANGELOG_FILE
-            value: jpa-changelog-master-v1.xml
+            value: jpa-changelog-master-v3.xml
         templates:
           - templateName: analysis-v1
       abortScaleDownDelaySeconds: 30
       scaleDownDelaySeconds: 15
+# EOF

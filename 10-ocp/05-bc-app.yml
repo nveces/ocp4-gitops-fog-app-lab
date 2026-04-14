@@ -37,3 +37,71 @@ spec:
     contextDir: 20-app
   runPolicy: Serial
 ---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: fog-app
+  name: fog-app-v2
+  namespace: app-lab
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fog-app:v2
+      namespace: app-lab
+  postCommit: {}
+  resources:
+    limits:
+      cpu: '2'
+      memory: 4Gi
+  strategy:
+    type: Source
+    sourceStrategy:
+      imageOptimizationPolicy: SkipLayers
+      from:
+        kind: DockerImage
+        name: 'registry.access.redhat.com/ubi9/openjdk-21:1.24'
+  source:
+    type: Git
+    git:
+      uri: "https://route-gitlab-system.apps.cluster-5h9kv.dynamic.redhatworkshops.io/nveces/ocp4-gitops-fog-app-lab.git"
+      ref: main
+      #ref: develop
+    contextDir: 20-app
+  runPolicy: Serial
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: fog-app
+  name: fog-app-v3
+  namespace: app-lab
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: fog-app:v3
+      namespace: app-lab
+  postCommit: {}
+  resources:
+    limits:
+      cpu: '2'
+      memory: 4Gi
+  strategy:
+    type: Source
+    sourceStrategy:
+      imageOptimizationPolicy: SkipLayers
+      from:
+        kind: DockerImage
+        name: 'registry.access.redhat.com/ubi9/openjdk-21:1.24'
+  source:
+    type: Git
+    git:
+      uri: "https://route-gitlab-system.apps.cluster-5h9kv.dynamic.redhatworkshops.io/nveces/ocp4-gitops-fog-app-lab.git"
+      ref: main
+      #ref: develop
+    contextDir: 20-app
+  runPolicy: Serial
+---
